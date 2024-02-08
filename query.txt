@@ -1,0 +1,147 @@
+=================================================
+SELECT
+    e.employee_id,
+    e.first_name,
+    e.last_name,
+    d.department_name,
+    r.role_name,
+    COUNT(a.address_id) AS address_count,
+    MAX(CAST(s.amount AS DECIMAL(10, 2))) AS max_salary,
+    MIN(CAST(s.amount AS DECIMAL(10, 2))) AS min_salary,
+    AVG(CAST(s.amount AS DECIMAL(10, 2))) AS avg_salary
+FROM
+    public.employee e
+JOIN
+    public.departments d ON e.department_id = d.department_id
+JOIN
+    public.role_model r ON e.role_id = r.role_id
+LEFT JOIN
+    public.address a ON e.employee_id = a.employee_id
+LEFT JOIN
+    public.salary s ON e.employee_id = s.employee_id
+GROUP BY
+    e.employee_id, e.first_name, e.last_name, d.department_name, r.role_name;
+    //rolename,departmentname,addresscount,min,max and avg
+    ============================================================================================================================
+    SELECT
+        d.department_name,
+        COUNT(e.employee_id) AS employee_count
+    FROM
+        public.departments d
+    LEFT JOIN
+        public.employee e ON d.department_id = e.department_id
+    WHERE
+        d.department_name = 'Information Technology'
+    GROUP BY
+        d.department_name;
+       -- no. of employeee count for particluar table
+================================================================================================================================
+
+SELECT
+    d.department_name,
+    COUNT(e.employee_id) AS employee_count,
+    MAX(CAST(s.amount AS DECIMAL(10, 2))) AS max_salary,
+    MIN(CAST(s.amount AS DECIMAL(10, 2))) AS min_salary,
+    AVG(CAST(s.amount AS DECIMAL(10, 2))) AS avg_salary
+FROM
+    public.departments d
+LEFT JOIN
+    public.employee e ON d.department_id = e.department_id
+LEFT JOIN
+    public.salary s ON e.employee_id = s.employee_id
+GROUP BY
+    d.department_name;
+
+//each depatment how many employees and avg salry for each department and min and max salary
+======================================================================================================================================
+SELECT
+    r.role_name,
+    COUNT(e.employee_id) AS employee_count,
+    MAX(CAST(s.amount AS DECIMAL(10, 2))) AS max_salary,
+    MIN(CAST(s.amount AS DECIMAL(10, 2))) AS min_salary,
+    AVG(CAST(s.amount AS DECIMAL(10, 2))) AS avg_salary
+FROM
+    public.role_model r
+LEFT JOIN
+    public.employee e ON r.role_id = e.role_id
+LEFT JOIN
+    public.salary s ON e.employee_id = s.employee_id
+GROUP BY
+    r.role_name;
+Calculating the maximum, minimum, and average salary for employees in each role.
+==================================================================================================================================================
+SELECT
+    d.department_name,
+    COUNT(DISTINCT e.role_id) AS unique_roles_count
+FROM
+    public.departments d
+LEFT JOIN
+    public.employee e ON d.department_id = e.department_id
+GROUP BY
+    d.department_name;
+-->no of unique roles in each department
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+SELECT
+    e.employee_id,
+    e.first_name,
+    e.last_name,
+    e.email,
+    d.department_name,
+    r.role_name,
+    (SELECT AVG(CAST(s.amount AS DECIMAL(10, 2))) FROM public.salary s WHERE s.employee_id = e.employee_id) AS avg_salary
+FROM
+    public.employee e
+JOIN
+    public.departments d ON e.department_id = d.department_id
+JOIN
+    public.role_model r ON e.role_id = r.role_id;
+The subquery (SELECT AVG(amount) FROM public.salary s WHERE s.employee_id = e.employee_id) calculates the average salary for each employee
+by selecting the relevant rows from the public.salary table.
+The main query selects employee details, department name, role name, and the result of the subquery (average salary) for each employee.
+=========================================================================================================================================================
+SELECT
+    e.employee_id,
+    e.first_name,
+    e.last_name,
+    e.email,
+    d.department_name,
+    r.role_name,
+    s.amount AS salary
+FROM
+    public.employee e
+JOIN
+    public.departments d ON e.department_id = d.department_id
+JOIN
+    public.role_model r ON e.role_id = r.role_id
+JOIN
+    public.salary s ON e.employee_id = s.employee_id
+WHERE
+    s.amount::numeric > (
+        SELECT AVG(s2.amount::numeric)
+        FROM public.salary s2
+        WHERE e.department_id = s2.employee_id
+    );
+This query retrieves information about employees who have a salary greater than the average salary for their respective departments:
+========================================================================================================================================================
+SELECT
+    e.employee_id,
+    e.first_name,
+    e.last_name,
+    d.department_name,
+    r.role_name,
+    s.amount AS salary,
+    (
+        SELECT COUNT(a.address_id)
+        FROM public.address a
+        WHERE a.employee_id = e.employee_id
+    ) AS address_count
+FROM
+    public.employee e
+JOIN
+    public.departments d ON e.department_id = d.department_id
+JOIN
+    public.role_model r ON e.role_id = r.role_id
+JOIN
+    public.salary s ON e.employee_id = s.employee_id;
+ In this query, the subquery calculates the count of addresses for each employee,
+    and the main query retrieves information about employees, departments, roles, and their salaries.
